@@ -13,6 +13,7 @@ namespace RemoteLogCore
 {
     public class RemoteLog
     {
+        #region members
         private const string FORMAT = "yyyy-MM-dd HH:mm:ss.fff";
 
         public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings();
@@ -29,17 +30,17 @@ namespace RemoteLogCore
 
         private static readonly RemoteLog _self = new RemoteLog();
 
+        private DeviceDataProvider _deviceDataProvider;
+
+        private ServiceConnector _connector;
+
+        #endregion
 
         private static bool _resend = false;
-
         public static void Resend()
         {
             _resend = true;
         }
-
-        private DeviceDataProvider _deviceDataProvider;
-
-        private ServiceConnector _connector;
 
         static internal LogSender LogSender
         {
@@ -53,11 +54,15 @@ namespace RemoteLogCore
             }
         }
 
+        /// <summary>
+        /// Return instance
+        /// </summary>
+        /// <returns>Reference only if Initialization succeeded</returns>
         public static RemoteLog Instance()
         {
             return _logSender != null ? _self : null;
         }
-
+        
         static RemoteLog()
         {
             Settings.Converters.Add(new MyDateTimeConverter());
@@ -78,6 +83,9 @@ namespace RemoteLogCore
             }
         }
 
+        /// <summary>
+        /// Call it for register unhandled exception handler
+        /// </summary>
         public static void RegisterUnhandledExceptionHandler()
         {
             Application.Current.UnhandledException += new EventHandler<ApplicationUnhandledExceptionEventArgs>((object o, ApplicationUnhandledExceptionEventArgs ea)
@@ -147,7 +155,7 @@ namespace RemoteLogCore
             {
                 throw new InvalidOperationException("Registration already started");
             }
-            ServiceConnector sc = new ServiceConnector("http://192.168.168.183:8080/RemoteLogWeb/");
+            ServiceConnector sc = new ServiceConnector(serverLocation);
 
             _self._deviceID = RLSettings.DeviceID;
             _self._appName = ApplicationInfo.Title;
@@ -219,6 +227,11 @@ namespace RemoteLogCore
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="device"></param>
+        /// <returns></returns>
         private int SendDeviceToServer(Device device)
         {
             int result = 0;
@@ -241,10 +254,14 @@ namespace RemoteLogCore
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
-            }
+            }            
             return result;
         }
 
+        /// <summary>
+        /// Create new pre-filled LogItem
+        /// </summary>
+        /// <returns></returns>
         internal static Model.LogItem CreateLogItem()
         {
             LogItem li = new LogItem();
@@ -255,6 +272,11 @@ namespace RemoteLogCore
             return li;
         }
 
+        /// <summary>
+        /// Get stack trace as readable string
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public static string GetStackTrace(Exception t)
         {
             return new System.Diagnostics.StackTrace(t).ToString();

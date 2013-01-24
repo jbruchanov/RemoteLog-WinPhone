@@ -145,11 +145,22 @@ namespace RemoteLogCore
             }
         }
 
+        /// <summary>
+        /// Take a screenshot of whole app window
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="msg"></param>
         public static void TakeScreenshot(object source, string msg = null)
         {
             TakeScreenshot(source, Application.Current.RootVisual as FrameworkElement, msg);
         }
 
+        /// <summary>
+        /// Take a screenshot of particular UI element 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="element"></param>
+        /// <param name="msg"></param>
         public static void TakeScreenshot(object source, FrameworkElement element, string msg = null)
         {
             // get a writable bitmap ready
@@ -168,8 +179,15 @@ namespace RemoteLogCore
             Send(typeof(RLog), "ScreenShot", msg, new LogItemBlobRequest(LogItemBlobRequest.MIME_IMAGE_JPEG, "screenshot.jpg", stream.ToArray()));
         }
 
+        /// <summary>
+        /// Generic implementation of sending
+        /// </summary>
+        /// <param name="source">Any kind of object used like source on web client</param>
+        /// <param name="category">Base category for better filtering</param>
+        /// <param name="msg"></param>
+        /// <param name="libr">Optional blob as attachment</param>
         public static void Send(object source, string category, string msg, LogItemBlobRequest libr = null)
-        {
+        {            
             if (sMode == TURN_OFF)
             {
                 return;
