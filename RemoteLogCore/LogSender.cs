@@ -58,6 +58,11 @@ namespace RemoteLogCore
                         mCoData.Remove(li);
                         blobReq.LogItemID = saved.ID;
                         mServiceConnector.SendItem(blobReq);
+                        //delete unhandled exception from storage
+                        if (blobReq.IsUnhandledException)
+                        {
+                            RLSettings.UnhandledExceptionStack = "";
+                        }
                     }
                 }
                 catch { /*ignore error and continue*/ }

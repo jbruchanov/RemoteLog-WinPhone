@@ -10,6 +10,8 @@ namespace RemoteLogCore
     {
         private const string DEVICE_ID = "DEVICE_ID";
 
+        private const string UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION";
+
         public static int? DeviceID
         {
             get
@@ -21,6 +23,24 @@ namespace RemoteLogCore
             set
             {
                 IsolatedStorageSettings.ApplicationSettings[DEVICE_ID] = value;
+                IsolatedStorageSettings.ApplicationSettings.Save();
+            }
+        }
+
+        public static string UnhandledExceptionStack
+        {
+            get
+            {
+                string v = null;
+                if(!IsolatedStorageSettings.ApplicationSettings.TryGetValue(UNHANDLED_EXCEPTION, out v))
+                {
+                    v = "";
+                }
+                return v;
+            }
+            set
+            {
+                IsolatedStorageSettings.ApplicationSettings[UNHANDLED_EXCEPTION] = value;
                 IsolatedStorageSettings.ApplicationSettings.Save();
             }
         }

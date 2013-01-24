@@ -57,6 +57,7 @@
     <Compile Include="BlockingLinkedList.cs" />
     <Compile Include="DeviceDataProvider.cs" />
     <Compile Include="ILog.cs" />
+    <Compile Include="KillAppException.cs" />
     <Compile Include="LogSender.cs" />
     <Compile Include="MediaLibrary.cs" />
     <Compile Include="Model\Device.cs" />

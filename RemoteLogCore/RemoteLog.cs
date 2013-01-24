@@ -13,6 +13,8 @@ namespace RemoteLogCore
 {
     public class RemoteLog
     {
+        private const string FORMAT = "yyyy-MM-dd HH:mm:ss.fff";
+
         public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings();
 
         private static LogSender _logSender;
@@ -63,7 +65,7 @@ namespace RemoteLogCore
 
         private class MyDateTimeConverter : Newtonsoft.Json.Converters.DateTimeConverterBase
         {
-            private const string FORMAT = "yyyy-MM-dd HH:mm:ss.fff";
+            
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
                 string v = reader.Value.ToString();
@@ -101,12 +103,9 @@ namespace RemoteLogCore
                             {
                                 LogItem li = RemoteLog.CreateLogItem();
                                 
-                                
-                                string msg = String.Format("V:{0} B:{1} Date:{2} {3}\n{4}\n{5}\n\n",
-                                    1,
-                                    1,
-                                    DateTime.Now.ToShortDateString(),
-                                    DateTime.Now.ToLongTimeString(),
+                                string msg = String.Format("V:{0} Date:{1}\n{2}\n{3}\n\n",
+                                    ApplicationInfo.Version,                                    
+                                    DateTime.Now.ToString(FORMAT),
                                     ex.Message,
                                     GetStackTrace(ea.ExceptionObject));
 
@@ -114,8 +113,17 @@ namespace RemoteLogCore
                                                                                   "fatalerror.txt",
                                                                                   msg);
                                 libr.IsUnhandledException = true;
-                                bool isKillApp = false;
-                                RLog.Send(typeof(RemoteLog), isKillApp ? "KillApp" : "UncaughtException", ex.Message, libr);
+                                bool isKillApp = ex is KillAppException;
+
+                                //save stack for case a problem during sending
+                                if (!isKillApp)
+                                {
+                                    String oldStack = RLSettings.UnhandledExceptionStack;
+                                    oldStack = msg + "\n\n" + oldStack;
+                                    RLSettings.UnhandledExceptionStack = oldStack;
+                                }
+
+                                RLog.Send(typeof(RemoteLog), isKillApp ? "KillApp" : "UnhandledException", ex.Message, libr);
                                 _logSender.WaitForEmptyQueue();
                             }
                             catch (Exception) 
@@ -199,7 +207,16 @@ namespace RemoteLogCore
             //push
             //settings
             
-            //unhandled exception in main thread                        
+            //unhandled exception in main thread     
+            string stack = RLSettings.UnhandledExceptionStack;
+            if (!String.IsNullOrEmpty(stack))
+            {
+                LogItem li = CreateLogItem();
+                li.Message = "Unhandled exception history";
+                LogItemBlobRequest libr = new LogItemBlobRequest(LogItemBlobRequest.MIME_TEXT_PLAIN, "fatalerror.txt", stack);
+                libr.IsUnhandledException = true;
+                RLog.Send(typeof(Application), "UnhandledException", "History stack trace", libr);
+            }
         }
 
         private int SendDeviceToServer(Device device)
@@ -207,8 +224,6 @@ namespace RemoteLogCore
             int result = 0;
             try
             {
-                
-
                 Respond<Device> dr = _connector.SaveDevice(device);
                 if (dr == null || dr.HasError)
                 {
@@ -229,8 +244,6 @@ namespace RemoteLogCore
             }
             return result;
         }
-
-
 
         internal static Model.LogItem CreateLogItem()
         {
