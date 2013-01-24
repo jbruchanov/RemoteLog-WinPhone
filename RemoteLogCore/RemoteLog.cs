@@ -34,6 +34,8 @@ namespace RemoteLogCore
 
         private ServiceConnector _connector;
 
+        public event EventHandler<Respond<Settings[]>> SettingsLoaded;
+
         #endregion
 
         private static bool _resend = false;
@@ -62,7 +64,7 @@ namespace RemoteLogCore
         {
             return _logSender != null ? _self : null;
         }
-        
+
         static RemoteLog()
         {
             Settings.Converters.Add(new MyDateTimeConverter());
@@ -70,7 +72,7 @@ namespace RemoteLogCore
 
         private class MyDateTimeConverter : Newtonsoft.Json.Converters.DateTimeConverterBase
         {
-            
+
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
                 string v = reader.Value.ToString();
@@ -90,29 +92,29 @@ namespace RemoteLogCore
         {
             Application.Current.UnhandledException += new EventHandler<ApplicationUnhandledExceptionEventArgs>((object o, ApplicationUnhandledExceptionEventArgs ea)
                 =>
-                {                    
+                {
                     if ((RLog.Mode & RLog.ERROR) == RLog.ERROR)
                     {
                         Exception ex = ea.ExceptionObject;
-                        
-                        if(ex is UnhandledExceptionKillApp)
-                        {                            
+
+                        if (ex is UnhandledExceptionKillApp)
+                        {
                             return;
                         }
                         else
                         {
                             ea.Handled = true;
                         }
-                       
+
                         //must be in another thread, otherwise sender thread is block for infinite
                         Thread t = new Thread(new ThreadStart(() =>
                         {
                             try
                             {
                                 LogItem li = RemoteLog.CreateLogItem();
-                                
+
                                 string msg = String.Format("V:{0} Date:{1}\n{2}\n{3}\n\n",
-                                    ApplicationInfo.Version,                                    
+                                    ApplicationInfo.Version,
                                     DateTime.Now.ToString(FORMAT),
                                     ex.Message,
                                     GetStackTrace(ea.ExceptionObject));
@@ -134,12 +136,12 @@ namespace RemoteLogCore
                                 RLog.Send(typeof(RemoteLog), isKillApp ? "KillApp" : "UnhandledException", ex.Message, libr);
                                 _logSender.WaitForEmptyQueue();
                             }
-                            catch (Exception) 
+                            catch (Exception)
                             {
-                                /* just ignore it now */ 
+                                /* just ignore it now */
                                 // save it for late send
                             }
-                            
+
                             //throw new exception for kill app
                             throw new UnhandledExceptionKillApp();
                         }));
@@ -168,7 +170,7 @@ namespace RemoteLogCore
             {
                 _self._deviceDataProvider = new DeviceDataProvider();
             }
-            
+
             //must be called in MainThread
             Device dev = _self._deviceDataProvider.GetDevice();
 
@@ -213,8 +215,15 @@ namespace RemoteLogCore
             _logSender = new LogSender(_connector);
 
             //push
+
             //settings
-            
+            Respond<Settings[]> settings = _self._connector.LoadSettings((int)_self._deviceID, _self._appName);
+            OnLoadSettings(settings);
+            if(SettingsLoaded != null)
+            {
+                SettingsLoaded.Invoke(this, settings);
+            }
+
             //unhandled exception in main thread     
             string stack = RLSettings.UnhandledExceptionStack;
             if (!String.IsNullOrEmpty(stack))
@@ -224,6 +233,35 @@ namespace RemoteLogCore
                 LogItemBlobRequest libr = new LogItemBlobRequest(LogItemBlobRequest.MIME_TEXT_PLAIN, "fatalerror.txt", stack);
                 libr.IsUnhandledException = true;
                 RLog.Send(typeof(Application), "UnhandledException", "History stack trace", libr);
+            }
+        }
+
+        protected void OnLoadSettings(Respond<Model.Settings[]> settings)
+        {
+            try
+            {
+                if (settings.Count > 0)
+                {
+                    // going from end, where should be device specific
+                    foreach (Settings s in settings.Context)
+                    {
+                        Dictionary<String, Object> vs = JsonConvert.DeserializeObject<Dictionary<string, object>>(s.JsonValue);
+                        if (vs != null && vs.ContainsKey("RLog"))
+                        {
+                            string logMode = vs["RLog"].ToString();
+                            int parsedValue = RLog.ParseMode(logMode);
+                            if (parsedValue != -1)
+                            {
+                                RLog.Mode = parsedValue;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                RLog.E(this, e);
+                // ignore any error and let the code continue	        
             }
         }
 
@@ -254,7 +292,7 @@ namespace RemoteLogCore
             catch (Exception e)
             {
                 Debug.WriteLine(e.StackTrace);
-            }            
+            }
             return result;
         }
 
@@ -280,6 +318,26 @@ namespace RemoteLogCore
         public static string GetStackTrace(Exception t)
         {
             return new System.Diagnostics.StackTrace(t).ToString();
+        }
+
+        /// <summary>
+        /// Async calling for gettings settings from server To catch settings loaded event register eventhander for SettingsLoaded event
+        /// </summary>
+        public void LoadSettings()
+        {
+            if (_self._deviceID == null || String.IsNullOrEmpty(_self._appName))
+            {
+                throw new InvalidProgramException("Remote log not initialized!");
+            }
+            Thread t = new Thread(new ThreadStart(() =>
+                {
+                    Respond<Settings[]> ret = _self._connector.LoadSettings((int)_self._deviceID, _self._appName);
+                    if (SettingsLoaded != null)
+                    {
+                        SettingsLoaded.Invoke(this, ret);
+                    }
+                }));
+            t.Start();
         }
     }
 }

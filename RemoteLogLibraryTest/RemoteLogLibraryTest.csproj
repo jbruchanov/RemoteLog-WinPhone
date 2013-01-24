@@ -73,6 +73,7 @@
     </Compile>
     <Compile Include="DevideDataProviderTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RLogTest.cs" />
     <Compile Include="ServiceConnectorTest.cs" />
     <Compile Include="TestPage.xaml.cs">
       <DependentUpon>TestPage.xaml</DependentUpon>

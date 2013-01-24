@@ -24,7 +24,7 @@ namespace RemoteLogLibraryTest
         public void MyTestMethodX()
         {
             string json = "{\"Message\":\"OK\",\"HasError\":false,\"Context\":[],\"Count\":0}";
-            SettingsRespond sr = Newtonsoft.Json.JsonConvert.DeserializeObject<SettingsRespond>(json);
+            Respond<Settings[]> sr = Newtonsoft.Json.JsonConvert.DeserializeObject<Respond<Settings[]>>(json);
             Assert.IsFalse(sr.HasError);
         }
 

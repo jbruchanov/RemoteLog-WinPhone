@@ -133,7 +133,7 @@ namespace RemoteLogCore
             return textrespond;
         }
 
-        public SettingsRespond LoadSettings(int deviceId, String appName)
+        public Respond<Settings[]> LoadSettings(int deviceId, String appName)
         {
             string textrespond = null;
             Thread caller = System.Threading.Thread.CurrentThread;
@@ -153,7 +153,7 @@ namespace RemoteLogCore
                     }), wr);
                 Monitor.Wait(this);
             }
-            SettingsRespond result = JsonConvert.DeserializeObject<SettingsRespond>(textrespond, RemoteLog.Settings);
+            Respond<Settings[]> result = JsonConvert.DeserializeObject<Respond<Settings[]>>(textrespond, RemoteLog.Settings);
             return result;
         }
     }

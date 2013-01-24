@@ -15,7 +15,7 @@ namespace RemoteLogLibraryTest
         [TestMethod]
         public void TestGetDevice()
         {
-           Device d = DeviceDataProvider.GetDevice();
+            Device d = new DeviceDataProvider().GetDevice();
             Assert.IsNotNull(d.Brand);
             Assert.IsNotNull(d.DevUUID);
             Assert.IsNotNull(d.Model);

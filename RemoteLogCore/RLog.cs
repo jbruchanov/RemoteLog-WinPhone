@@ -12,7 +12,7 @@ namespace RemoteLogCore
 {
     public class RLog
     {
-        private const string SEPARATOR = "|";
+        private const char SEPARATOR = '|';
 
         public const int TURN_OFF = 0;
         public const int INFO = 1 << 1;
@@ -225,6 +225,62 @@ namespace RemoteLogCore
             set
             {
                 sMode = value;
+            }
+        }
+
+
+        /// <summary>
+        /// Parse string to numeric mode related to modes
+        /// </summary>
+        /// <param name="values">String exactly name as mode ig. VERBOSE, can be multiple values separeted by '|' ig VERBOSE|ERROR or just decimal value of modes</param>
+        /// <returns></returns>
+        public static int ParseMode(String values) 
+        {
+	        int result = 0;
+	        bool found = false;
+	        values = values.Trim();
+	        if (!String.IsNullOrEmpty(values)) 
+            {
+                //try numeric value
+		        int iv = -1;
+                if (int.TryParse(values, out iv) && (iv <= ALL && iv >= TURN_OFF))
+                {
+                    result = iv;
+		            return result;
+		        }
+
+                //try string values
+                int subvalue = 0;
+	            // array
+                string[] vs = values.Split(new char[] { SEPARATOR });
+                foreach (string v in vs)
+                {
+                    subvalue = ParseModeValue(v);
+                    if (subvalue != -1)
+                    {
+                        found = true;
+                        result |= subvalue;
+                    }
+                }
+	        }
+	        return found ? result : -1;
+        }
+
+        protected static int ParseModeValue(String value)
+        {
+            switch (value)
+            {
+                case "TURN_OFF": return TURN_OFF;
+                case "INFO": return INFO;
+                case "VERBOSE": return VERBOSE;
+                case "DEBUG": return DEBUG;
+                case "WARNING": return WARNING;
+                case "ERROR": return ERROR;
+                case "EXCEPTION": return EXCEPTION;
+                case "WTF": return WTF;
+                case "SCREENSHOT": return SCREENSHOT;
+                case "ALL": return ALL;
+                default: return -1;    
             }
         }
     }
