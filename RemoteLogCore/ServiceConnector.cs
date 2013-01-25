@@ -110,10 +110,18 @@ namespace RemoteLogCore
                         //get response
                         wr.BeginGetResponse(new AsyncCallback((iar) =>
                         {
-                            WebResponse resp = wr.EndGetResponse(iar);
-                            Stream input = resp.GetResponseStream();
-                            System.IO.StreamReader sr = new StreamReader(input);
-                            textrespond = sr.ReadToEnd();
+                            try
+                            {
+                                WebResponse resp = wr.EndGetResponse(iar);
+                                Stream input = resp.GetResponseStream();
+                                System.IO.StreamReader sr = new StreamReader(input);
+                                textrespond = sr.ReadToEnd();
+                            }
+                            catch (Exception e)
+                            {
+                                WPLog.Log.E(this, e);
+                            }
+
                             lock (this)
                             {
                                 Monitor.PulseAll(this);
@@ -142,10 +150,17 @@ namespace RemoteLogCore
                 WebRequest wr = WebRequest.CreateHttp(new Uri(String.Format(URL + SETTINGS_TEMPLATE_URL, deviceId, appName)));                                
                 wr.BeginGetResponse(new AsyncCallback((ia) =>
                     {
-                        WebResponse response = wr.EndGetResponse(ia);
-                        Stream s = response.GetResponseStream();
-                        System.IO.StreamReader sr = new StreamReader(s);
-                        textrespond = sr.ReadToEnd();
+                        try
+                        {
+                            WebResponse response = wr.EndGetResponse(ia);
+                            Stream s = response.GetResponseStream();
+                            System.IO.StreamReader sr = new StreamReader(s);
+                            textrespond = sr.ReadToEnd();
+                        }
+                        catch (Exception e)
+                        {
+                            WPLog.Log.E(this, e);
+                        }
                         lock (this)
                         {
                             Monitor.PulseAll(this);

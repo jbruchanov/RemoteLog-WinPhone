@@ -7,19 +7,19 @@ namespace RemoteLogCore
 {
     public interface ILog
     {
-        void I(object source, string category, string msg);
+        void I(object source, string msg);
 
-        void V(object source, string category, string msg);
+        void V(object source, string msg);
 
-        void D(object source, string category, string msg);
+        void D(object source, string msg);
 
-        void E(object source, string category, string msg);
-        void E(object source, string category, Exception t);
+        void E(object source, string msg);
+        void E(object source, Exception t);
 
-        void N(object source, string category, string msg);
+        void N(object source, string msg);
 
-        void W(object source, string category, string msg);
+        void W(object source, string msg);
 
-        void Wtf(object source, string category, string msg);
+        void Wtf(object source, string msg);
     }
 }

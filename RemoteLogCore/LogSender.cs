@@ -65,7 +65,11 @@ namespace RemoteLogCore
                         }
                     }
                 }
-                catch { /*ignore error and continue*/ }
+                catch (Exception e)
+                {
+                    RLog.E(this, e, "Sending logitem");
+                    /*ignore error and continue*/ 
+                }
                 finally
                 {
                     if (li != null)

@@ -321,7 +321,7 @@ namespace RemoteLogCore
         }
 
         /// <summary>
-        /// Async calling for gettings settings from server To catch settings loaded event register eventhander for SettingsLoaded event
+        /// Async calling for lTo catch settings loaded event register eventhander for SettingsLoaded event
         /// </summary>
         public void LoadSettings()
         {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RemoteLogCore.Model
 {
-    public class Respond<T>
+    public class Respond<T> : EventArgs
     {
         public string Type { get; set; }
 

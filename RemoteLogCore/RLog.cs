@@ -43,7 +43,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.N(source, category, msg);
+                sLog.N(source, msg);
             }
         }
 
@@ -55,7 +55,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.I(source, category, msg);
+                sLog.I(source, msg);
             }
         }
 
@@ -67,7 +67,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.V(source, category, msg);
+                sLog.V(source, msg);
             }
         }
 
@@ -79,7 +79,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.D(source, category, msg);
+                sLog.D(source, msg);
             }
         }
 
@@ -94,7 +94,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.E(source, category, msg);
+                sLog.E(source, msg);
             }
         }
 
@@ -106,7 +106,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.I(source, category, msg);
+                sLog.I(source, msg);
             }
         }
 
@@ -129,7 +129,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.W(source, category, msg);
+                sLog.W(source, msg);
             }
         }
 
@@ -141,7 +141,7 @@ namespace RemoteLogCore
             }
             if (sLog != null)
             {
-                sLog.Wtf(source, category, msg);
+                sLog.Wtf(source, msg);
             }
         }
 
