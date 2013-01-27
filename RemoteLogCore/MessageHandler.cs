@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Coding4Fun.Phone.Controls;
+using Microsoft.Phone.Shell;
+using Newtonsoft.Json;
 using RemoteLogCore.Model;
 using System;
 using System.Collections.Generic;
@@ -27,15 +29,15 @@ namespace RemoteLogCore
             switch (msg.Name)
             {
                 case TAKESCREENSHOT:
-                    OnTakeScreenshot(msg);break;
+                    OnTakeScreenshot(msg); break;
                 case ECHO:
-                    OnEcho(msg);break;
+                    OnEcho(msg); break;
                 case KILLAPP:
-                    OnKillApp(msg);break;
+                    OnKillApp(msg); break;
                 case LASTKNOWNLOCATION:
                     OnLastKnownLocation(msg); break;
                 case RELOADSETTINGS:
-                    OnReloadSettings(msg);break;
+                    OnReloadSettings(msg); break;
                 default:
                     break;
             }
@@ -46,7 +48,7 @@ namespace RemoteLogCore
         {
             RemoteLog rl = RemoteLog.Instance();
             if (rl != null)
-            {                
+            {
                 rl.OnLoadSettings(rl.LoadSetttingsBlocking());
             }
         }
@@ -67,17 +69,17 @@ namespace RemoteLogCore
                             RLog.N(this, "Location", GetLocationSring(args.Position.Location));
                             watcher.Stop();
                         };
-                        watcher.Start();                
+                        watcher.Start();
                     }
                     break;
 
-            }            
+            }
         }
 
         private static string GetLocationSring(GeoCoordinate l)
         {
             return String.Format("lat:{0}, lng:{1}, alt:{2}, accuracy:{3}", l.Latitude, l.Longitude, l.Altitude, l.VerticalAccuracy);
-                
+
         }
 
         private void OnKillApp(PushMessage msg)
@@ -95,16 +97,26 @@ namespace RemoteLogCore
 
         public virtual void OnToastNotificiationReceived(object o, Microsoft.Phone.Notification.NotificationEventArgs e)
         {
-            RLog.D(this, "ToastNotification:" + JsonConvert.SerializeObject(e.Collection));
+            Deployment.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    var toast = new ToastPrompt
+                    {
+                        Title = e.Collection["wp:Text1"],
+                        Message = e.Collection.ContainsKey("wp:Text2") ? e.Collection["wp:Text2"] : null
+                    };
+
+                    toast.Show();
+                }));
+            //RLog.D(this, "ToastNotification:" + JsonConvert.SerializeObject(e.Collection));            
         }
 
         private string GetBody(Stream stream)
-        {            
+        {
             return new StreamReader(stream).ReadToEnd();
         }
 
         public virtual void OnTakeScreenshot(PushMessage msg)
-        {            
+        {
             RLog.TakeScreenshot(this, "PushNotification");
         }
     }
