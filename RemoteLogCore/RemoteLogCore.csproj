@@ -45,6 +45,7 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\libraries\net\Json.NET\Bin\WindowsPhone\Signed\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="System.Device" />
     <Reference Include="System.Windows" />
     <Reference Include="system" />
     <Reference Include="System.Core" />
@@ -60,10 +61,12 @@
     <Compile Include="KillAppException.cs" />
     <Compile Include="LogSender.cs" />
     <Compile Include="MediaLibrary.cs" />
+    <Compile Include="MessageHandler.cs" />
     <Compile Include="Model\Device.cs" />
     <Compile Include="Model\LogItem.cs" />
     <Compile Include="Model\LogItemBlob.cs" />
     <Compile Include="Model\LogItemBlobRequest.cs" />
+    <Compile Include="Model\PushMessage .cs" />
     <Compile Include="Model\Respond.cs" />
     <Compile Include="Model\Settings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace RemoteLogCore
 {
@@ -147,12 +149,16 @@ namespace RemoteLogCore
 
         /// <summary>
         /// Take a screenshot of whole app window
+        /// Handles cross-thread access problem.
         /// </summary>
         /// <param name="source"></param>
         /// <param name="msg"></param>
         public static void TakeScreenshot(object source, string msg = null)
-        {
-            TakeScreenshot(source, Application.Current.RootVisual as FrameworkElement, msg);
+        {            
+            Dispatcher d = Deployment.Current.Dispatcher;            
+            d.BeginInvoke(new Action(() =>
+                { TakeScreenshot(source, Application.Current.RootVisual as FrameworkElement, msg); }
+            ));
         }
 
         /// <summary>

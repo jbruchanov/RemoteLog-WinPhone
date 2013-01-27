@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Phone.Notification;
+using Newtonsoft.Json;
 using RemoteLogCore.Model;
 using System;
 using System.Collections.Generic;
@@ -35,6 +36,8 @@ namespace RemoteLogCore
         private ServiceConnector _connector;
 
         public event EventHandler<Respond<Settings[]>> SettingsLoaded;
+
+        private PushMessageHandler _pushMessageHandler;
 
         #endregion
 
@@ -151,6 +154,45 @@ namespace RemoteLogCore
                 });
         }
 
+        private static bool _pushNotifications = false;
+        private static string _pushNotificationServiceName = null;
+        
+        private HttpNotificationChannel _httpChannel;
+
+        /// <summary>
+        /// HttpNotificationChannel is initialized when push notifications feature is registered
+        /// </summary>
+        public HttpNotificationChannel HttpNotificationChannel
+        {
+            get
+            {
+                return _httpChannel;
+            }
+
+            private set
+            {
+                _httpChannel = value;
+            }
+        }
+
+        /// <summary>
+        /// Register library for accepting push notifications
+        /// ID_CAP_PUSH_NOTIFICATION capability required!
+        /// </summary>
+        /// <param name="serviceName">
+        /// When creating an HttpNotificationChannel, titles should use the fully qualified domain name (FQDN) as the service name. For authenticated notifications, this FQDN must match the registered certificate's subject name (the CN attribute), for example, www.contoso.com. For more information about authenticated notifications, see: Push Notifications (Windows Phone).
+        /// </param>
+        public static void RegisterForPushNotifications(string serviceName)
+        {
+            if (String.IsNullOrEmpty(serviceName))
+            {
+                throw new ArgumentException("service name is null or empty!");
+            }
+            _pushNotificationServiceName = serviceName;
+            _pushNotifications = true;
+
+        }
+
         public static void Init(string appName, string serverLocation, Action callback = null)
         {
             if (_regThread != null)
@@ -215,11 +257,15 @@ namespace RemoteLogCore
             _logSender = new LogSender(_connector);
 
             //push
+            if (_pushNotifications)
+            {
+                OnRegisterPushNotifications();
+            }
 
             //settings
-            Respond<Settings[]> settings = _self._connector.LoadSettings((int)_self._deviceID, _self._appName);
+            Respond<Settings[]> settings = LoadSetttingsBlocking();
             OnLoadSettings(settings);
-            if(SettingsLoaded != null)
+            if (SettingsLoaded != null)
             {
                 SettingsLoaded.Invoke(this, settings);
             }
@@ -236,7 +282,70 @@ namespace RemoteLogCore
             }
         }
 
-        protected void OnLoadSettings(Respond<Model.Settings[]> settings)
+        internal Respond<Settings[]> LoadSetttingsBlocking()
+        {
+            return _self._connector.LoadSettings((int)_self._deviceID, _self._appName);
+        }
+
+        protected void OnRegisterPushNotifications()
+        {
+            _pushMessageHandler = new PushMessageHandler();
+            // Try to find an existing channel
+            HttpNotificationChannel = HttpNotificationChannel.Find(_appName);
+
+            if (null == HttpNotificationChannel)
+            {
+                HttpNotificationChannel = new HttpNotificationChannel(_appName, _pushNotificationServiceName);
+                // handle Uri notification events
+                
+                HttpNotificationChannel.Open();
+
+                HttpNotificationChannel.ChannelUriUpdated +=
+                        new EventHandler<NotificationChannelUriEventArgs>((o, e) =>
+                        {
+                            UpdatePushUri(e.ChannelUri);
+                        });
+            }
+            else
+            {
+                
+                // the channel already exists.  httpChannel.ChannelUri contains the device’s
+                // unique locator	
+            }
+
+            HttpNotificationChannel.HttpNotificationReceived += new EventHandler<HttpNotificationEventArgs>((o, e) =>
+            {
+                _pushMessageHandler.OnNotificiationReceived(o, e);
+            });
+
+            
+            if (!HttpNotificationChannel.IsShellToastBound) { HttpNotificationChannel.BindToShellToast(); }
+
+            _httpChannel.ShellToastNotificationReceived += new EventHandler<NotificationEventArgs>((o, e) =>
+                {
+                    _pushMessageHandler.OnToastNotificiationReceived(o, e);
+                });
+            
+            if (!HttpNotificationChannel.IsShellTileBound) { HttpNotificationChannel.BindToShellTile(); }            
+            // handle error events
+            _httpChannel.ErrorOccurred +=
+                new EventHandler<NotificationChannelErrorEventArgs>((o, e) =>
+            {                
+                RLog.E(this, e.Message);
+            });
+        }
+
+        private void UpdatePushUri(Uri uri)
+        {
+            //RLog.V(this, "New Push URI detected:" + uri != null ? uri.ToString() : "null");
+            if (uri != null)
+            {
+                Respond<String> resppond = _self._connector.UpdatePushToken((int)_deviceID, HttpNotificationChannel.ChannelUri.ToString());
+                string result = resppond.Context;
+            }
+        }
+
+        internal void OnLoadSettings(Respond<Model.Settings[]> settings)
         {
             try
             {

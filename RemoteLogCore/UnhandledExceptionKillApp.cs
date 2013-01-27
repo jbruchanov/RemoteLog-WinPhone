@@ -5,6 +5,10 @@ using System.Text;
 
 namespace RemoteLogCore
 {
+    /// <summary>
+    /// 
+    /// Help class to invoke app error
+    /// </summary>
     internal class UnhandledExceptionKillApp : Exception
     {
     }

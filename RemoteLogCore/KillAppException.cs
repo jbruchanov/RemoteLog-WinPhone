@@ -5,8 +5,7 @@ using System.Text;
 
 namespace RemoteLogCore
 {
-    internal class KillAppException : Exception
+    class KillAppException : Exception
     {
-
     }
 }

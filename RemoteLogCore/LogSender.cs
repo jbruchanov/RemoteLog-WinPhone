@@ -65,10 +65,14 @@ namespace RemoteLogCore
                         }
                     }
                 }
+                catch (ThreadAbortException)
+                {
+                    //someone closed us, maybe app is closing
+                }
                 catch (Exception e)
                 {
                     RLog.E(this, e, "Sending logitem");
-                    /*ignore error and continue*/ 
+                    /*ignore error and continue*/
                 }
                 finally
                 {
