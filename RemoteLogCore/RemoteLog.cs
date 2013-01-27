@@ -242,8 +242,12 @@ namespace RemoteLogCore
         {
             if (_deviceID == null || _deviceID == 0 || _resend)
             {
-                _deviceID = SendDeviceToServer(dev);
-                RLSettings.DeviceID = _deviceID;
+                dev = SendDeviceToServer(dev);
+                if(dev != null)
+                {
+                    _deviceID = dev.DeviceID;
+                    RLSettings.DeviceID = _deviceID;
+                }
             }
 
             if (_self._deviceID == 0)
@@ -259,7 +263,7 @@ namespace RemoteLogCore
             //push
             if (_pushNotifications)
             {
-                OnRegisterPushNotifications();
+                OnRegisterPushNotifications(String.IsNullOrEmpty(dev.PushID));
             }
 
             //settings
@@ -287,7 +291,7 @@ namespace RemoteLogCore
             return _self._connector.LoadSettings((int)_self._deviceID, _self._appName);
         }
 
-        protected void OnRegisterPushNotifications()
+        protected void OnRegisterPushNotifications(bool updateOnServer)
         {
             _pushMessageHandler = new PushMessageHandler();
             // Try to find an existing channel
@@ -311,6 +315,11 @@ namespace RemoteLogCore
                 
                 // the channel already exists.  httpChannel.ChannelUri contains the device’s
                 // unique locator	
+
+                if (updateOnServer)
+                {
+                    UpdatePushUri(HttpNotificationChannel.ChannelUri);
+                }
             }
 
             HttpNotificationChannel.HttpNotificationReceived += new EventHandler<HttpNotificationEventArgs>((o, e) =>
@@ -379,24 +388,20 @@ namespace RemoteLogCore
         /// </summary>
         /// <param name="device"></param>
         /// <returns></returns>
-        private int SendDeviceToServer(Device device)
+        private Device SendDeviceToServer(Device device)
         {
-            int result = 0;
+            Device result = null;
             try
             {
                 Respond<Device> dr = _connector.SaveDevice(device);
                 if (dr == null || dr.HasError)
                 {
-                    Debug.WriteLine(dr.Message);
-                    result = 0;
+                    Debug.WriteLine(dr.Message);                    
                 }
                 else
                 {
-                    result = dr.Context.DeviceID;
+                    result = dr.Context;
                 }
-
-                RLSettings.DeviceID = result;
-                return result;
             }
             catch (Exception e)
             {
