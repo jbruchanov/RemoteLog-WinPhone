@@ -95,14 +95,16 @@ namespace RemoteLogCore
             //ignore it, handled by logging in OnNotificiationReceived method
         }
 
+        private const string WP_TEXT1 = "wp:Text1";
+        private const string WP_TEXT2 = "wp:Text2";
         public virtual void OnToastNotificiationReceived(object o, Microsoft.Phone.Notification.NotificationEventArgs e)
         {
             Deployment.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     var toast = new ToastPrompt
                     {
-                        Title = e.Collection["wp:Text1"],
-                        Message = e.Collection.ContainsKey("wp:Text2") ? e.Collection["wp:Text2"] : null
+                        Title = e.Collection[WP_TEXT1],
+                        Message = e.Collection.ContainsKey(WP_TEXT2) ? e.Collection[WP_TEXT2] : null
                     };
 
                     toast.Show();
