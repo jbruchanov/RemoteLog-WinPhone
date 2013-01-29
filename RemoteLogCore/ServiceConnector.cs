@@ -26,6 +26,8 @@ namespace RemoteLogCore
         private string URL { get; set; }
         private string Authorization { get; set; }
 
+        private Credentials _credentials;
+
         public ServiceConnector(string url, string username = null, string password = null)
         {
             if (url.EndsWith("/"))
@@ -33,6 +35,11 @@ namespace RemoteLogCore
                 url = url.Substring(0, url.Length - 1);
             }
             URL = url;
+
+            if (!(String.IsNullOrEmpty(username) && String.IsNullOrEmpty(password)))
+            {
+                _credentials = new Credentials(username, password);
+            }
         }
 
         /// <summary>
@@ -99,6 +106,7 @@ namespace RemoteLogCore
                 WebRequest wr = WebRequest.CreateHttp(url);
                 wr.Method = method;
                 wr.ContentType = CONTENT_TYPE_JSON;
+                wr.Credentials = _credentials;
                 //post
                 wr.BeginGetRequestStream(new AsyncCallback((ia) =>
                 {
@@ -119,7 +127,7 @@ namespace RemoteLogCore
                             }
                             catch (Exception e)
                             {
-                                WPLog.Log.E(this, e);
+                                RLog.E(this, e);
                             }
 
                             lock (this)
@@ -128,8 +136,9 @@ namespace RemoteLogCore
                             }
                         }), null);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        RLog.E(this, ex);
                         lock (this)
                         {
                             Monitor.PulseAll(this);
@@ -147,7 +156,8 @@ namespace RemoteLogCore
             Thread caller = System.Threading.Thread.CurrentThread;
             lock (this)
             {
-                WebRequest wr = WebRequest.CreateHttp(new Uri(String.Format(URL + SETTINGS_TEMPLATE_URL, deviceId, appName)));                                
+                WebRequest wr = WebRequest.CreateHttp(new Uri(String.Format(URL + SETTINGS_TEMPLATE_URL, deviceId, appName)));
+                wr.Credentials = _credentials;
                 wr.BeginGetResponse(new AsyncCallback((ia) =>
                     {
                         try
@@ -170,6 +180,19 @@ namespace RemoteLogCore
             }
             Respond<Settings[]> result = JsonConvert.DeserializeObject<Respond<Settings[]>>(textrespond, RemoteLog.Settings);
             return result;
+        }
+
+        private class Credentials : ICredentials
+        {
+            private NetworkCredential _credentials;
+            public Credentials(string username, string password)
+            {
+                _credentials = new NetworkCredential(username, password);
+            }
+            public NetworkCredential GetCredential(Uri uri, string authType)
+            {
+                return _credentials;
+            }
         }
     }
 }

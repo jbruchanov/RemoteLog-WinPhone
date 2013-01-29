@@ -37,6 +37,8 @@ namespace RemoteLogCore
 
         public event EventHandler<Respond<Settings[]>> SettingsLoaded;
 
+        public static event EventHandler RegistrationFinished;
+
         private PushMessageHandler _pushMessageHandler;
 
         #endregion
@@ -86,6 +88,19 @@ namespace RemoteLogCore
             {
                 writer.WriteValue(((DateTime)value).ToString(FORMAT));
             }
+        }
+
+        private static string _userName;
+        private static string _password;
+
+        public static void SetCredentials(string username, string password)
+        {
+            if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Invalid username or password");
+            }
+            _userName = username;
+            _password = password;
         }
 
         /// <summary>
@@ -198,15 +213,14 @@ namespace RemoteLogCore
             if (_regThread != null)
             {
                 throw new InvalidOperationException("Registration already started");
-            }
-            ServiceConnector sc = new ServiceConnector(serverLocation);
+            }            
 
             _self._deviceID = RLSettings.DeviceID;
             _self._appName = ApplicationInfo.Title;
             _self._appVersion = ApplicationInfo.Version;
 
             // create server connector
-            _self._connector = new ServiceConnector(serverLocation);
+            _self._connector = new ServiceConnector(serverLocation, _userName, _password);
 
             if (_self._deviceDataProvider == null)
             {
@@ -283,6 +297,11 @@ namespace RemoteLogCore
                 LogItemBlobRequest libr = new LogItemBlobRequest(LogItemBlobRequest.MIME_TEXT_PLAIN, "fatalerror.txt", stack);
                 libr.IsUnhandledException = true;
                 RLog.Send(typeof(Application), "UnhandledException", "History stack trace", libr);
+            }
+
+            if (RegistrationFinished != null)
+            {
+                RegistrationFinished.Invoke(this, EventArgs.Empty);
             }
         }
 
