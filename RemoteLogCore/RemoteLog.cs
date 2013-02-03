@@ -223,7 +223,7 @@ namespace RemoteLogCore
             }            
 
             _self._deviceID = RLSettings.DeviceID;
-            _self._appName = ApplicationInfo.Title;
+            _self._appName = appName;
             _self._appVersion = ApplicationInfo.Version;
 
             // create server connector
@@ -290,11 +290,19 @@ namespace RemoteLogCore
             }
 
             //settings
-            Respond<Settings[]> settings = LoadSetttingsBlocking();
-            OnLoadSettings(settings);
-            if (SettingsLoaded != null)
+            try
             {
-                SettingsLoaded.Invoke(this, settings);
+                Respond<Settings[]> settings = LoadSetttingsBlocking();
+                OnLoadSettings(settings);
+                if (SettingsLoaded != null)
+                {
+                    SettingsLoaded.Invoke(this, settings);
+                }
+            }
+            catch (Exception e)
+            {
+                //ignore error for load settings
+                RLog.E(this, e);
             }
 
             //unhandled exception in main thread     
