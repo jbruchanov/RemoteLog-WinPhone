@@ -103,6 +103,13 @@ namespace RemoteLogCore
             _password = password;
         }
 
+        private static string _owner;
+
+        public static void SetOwner(string owner)
+        {
+            _owner = owner;
+        }
+
         /// <summary>
         /// Call it for register unhandled exception handler
         /// </summary>
@@ -254,6 +261,8 @@ namespace RemoteLogCore
 
         private void Register(Device dev)
         {
+            dev.App = _appName;
+            dev.Owner = _owner;
             if (_deviceID == null || _deviceID == 0 || _resend)
             {
                 dev = SendDeviceToServer(dev);
