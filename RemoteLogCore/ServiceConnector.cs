@@ -154,6 +154,10 @@ namespace RemoteLogCore
             {
                 throw innerException;
             }
+            if (string.IsNullOrEmpty(textrespond))
+            {
+                throw new InvalidOperationException("Invalid server response");
+            }
             return textrespond;
         }
 

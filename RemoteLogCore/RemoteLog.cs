@@ -385,8 +385,15 @@ namespace RemoteLogCore
             //RLog.V(this, "New Push URI detected:" + uri != null ? uri.ToString() : "null");
             if (uri != null)
             {
-                Respond<String> resppond = _self._connector.UpdatePushToken((int)_deviceID, HttpNotificationChannel.ChannelUri.ToString());
-                string result = resppond.Context;
+                try
+                {
+                    Respond<String> resppond = _self._connector.UpdatePushToken((int)_deviceID, HttpNotificationChannel.ChannelUri.ToString());
+                    string result = resppond.Context;
+                }
+                catch (Exception e)
+                {
+                    RLog.E(this, e);
+                }
             }
         }
 
