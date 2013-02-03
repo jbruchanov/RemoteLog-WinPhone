@@ -101,6 +101,7 @@ namespace RemoteLogCore
         {
             string textrespond = null;
             Thread caller = System.Threading.Thread.CurrentThread;
+            Exception innerException = null;
             lock (this)
             {
                 WebRequest wr = WebRequest.CreateHttp(url);
@@ -127,6 +128,7 @@ namespace RemoteLogCore
                             }
                             catch (Exception e)
                             {
+                                innerException = e;
                                 RLog.E(this, e);
                             }
 
@@ -138,6 +140,7 @@ namespace RemoteLogCore
                     }
                     catch (Exception ex)
                     {
+                        innerException = ex;
                         RLog.E(this, ex);
                         lock (this)
                         {
@@ -147,6 +150,10 @@ namespace RemoteLogCore
                 }), null);
                 Monitor.Wait(this);
             }
+            if(innerException != null)
+            {
+                throw innerException;
+            }
             return textrespond;
         }
 
@@ -154,6 +161,7 @@ namespace RemoteLogCore
         {
             string textrespond = null;
             Thread caller = System.Threading.Thread.CurrentThread;
+            Exception innerException = null;
             lock (this)
             {
                 WebRequest wr = WebRequest.CreateHttp(new Uri(String.Format(URL + SETTINGS_TEMPLATE_URL, deviceId, appName)));
@@ -169,6 +177,7 @@ namespace RemoteLogCore
                         }
                         catch (Exception e)
                         {
+                            innerException = e;
                             WPLog.Log.E(this, e);
                         }
                         lock (this)
@@ -177,6 +186,10 @@ namespace RemoteLogCore
                         }
                     }), wr);
                 Monitor.Wait(this);
+            }
+            if(innerException != null)
+            {
+                throw innerException;
             }
             Respond<Settings[]> result = JsonConvert.DeserializeObject<Respond<Settings[]>>(textrespond, RemoteLog.Settings);
             return result;
