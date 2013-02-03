@@ -30,5 +30,7 @@ namespace RemoteLogCore.Model
         public string PushID { get; set; }
 
         public string Model { get; set; }
+
+        public string App { get; set; }
     }
 }
