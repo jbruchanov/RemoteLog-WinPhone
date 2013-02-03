@@ -286,7 +286,14 @@ namespace RemoteLogCore
             //push
             if (_pushNotifications)
             {
-                OnRegisterPushNotifications(String.IsNullOrEmpty(dev.PushID));
+                try
+                {
+                    OnRegisterPushNotifications(String.IsNullOrEmpty(dev.PushID));
+                }
+                catch (Exception e)
+                {
+                    RLog.E(this, e);
+                }
             }
 
             //settings
