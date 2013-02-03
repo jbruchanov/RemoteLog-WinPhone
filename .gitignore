@@ -1,3 +1,13 @@
 packages
 Bin
 obj
+RemoteLogDemo
+/RemoteLogLibrary.v11.suo
+/RemoteLogLibrary.sln
+*.user
+*.csproj
+RemoteLogLibrary
+*.csproj
+*.user
+*.user
+*.csproj
