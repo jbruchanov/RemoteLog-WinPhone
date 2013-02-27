@@ -37,6 +37,8 @@ namespace RemoteLogCore
 
         public event EventHandler<Respond<Settings[]>> SettingsLoaded;
 
+        public static event EventHandler PushUriChanged;
+
         public static event EventHandler RegistrationFinished;
 
         private PushMessageHandler _pushMessageHandler;
@@ -58,6 +60,19 @@ namespace RemoteLogCore
             private set
             {
                 _logSender = value;
+            }
+        }
+
+        private static string _pushUri = null;
+        public static string PushUri
+        {
+            get
+            {
+                return _pushUri;
+            }
+            private set
+            {
+                _pushUri = value;
             }
         }
 
@@ -350,7 +365,12 @@ namespace RemoteLogCore
                 HttpNotificationChannel.ChannelUriUpdated +=
                         new EventHandler<NotificationChannelUriEventArgs>((o, e) =>
                         {
+                            PushUri = e.ChannelUri.ToString();
                             UpdatePushUri(e.ChannelUri);
+                            if (RemoteLog.PushUriChanged != null)
+                            {
+                                RemoteLog.PushUriChanged.Invoke(o, e);
+                            }
                         });
             }
             else
@@ -362,6 +382,11 @@ namespace RemoteLogCore
                 if (updateOnServer)
                 {
                     UpdatePushUri(HttpNotificationChannel.ChannelUri);
+                }
+                PushUri = HttpNotificationChannel.ChannelUri.ToString();
+                if (RemoteLog.PushUriChanged != null)
+                {
+                    RemoteLog.PushUriChanged.Invoke(this, EventArgs.Empty);
                 }
             }
 
@@ -481,7 +506,16 @@ namespace RemoteLogCore
         /// <returns></returns>
         public static string GetStackTrace(Exception t)
         {
-            return new System.Diagnostics.StackTrace(t).ToString();
+            string v = t.Message + "\n" + t.StackTrace;
+            if (!t.Message.Equals(t.GetType().Name))
+            {
+                v = t.GetType().Name + "\t" + v;
+            }
+            if (t.InnerException != null)
+            {
+                v += "\nInnerException:\n" + GetStackTrace(t.InnerException);
+            }
+            return v;
         }
 
         /// <summary>
