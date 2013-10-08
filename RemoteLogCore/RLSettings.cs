@@ -8,6 +8,9 @@ namespace RemoteLogCore
 {
     internal class RLSettings 
     {
+
+        private const string DEVICE_GUID = "DEVICE_GUID";
+
         private const string DEVICE_ID = "DEVICE_ID";
 
         private const string UNHANDLED_EXCEPTION = "UNHANDLED_EXCEPTION";
@@ -25,6 +28,22 @@ namespace RemoteLogCore
                 IsolatedStorageSettings.ApplicationSettings[DEVICE_ID] = value;
                 IsolatedStorageSettings.ApplicationSettings.Save();
             }
+        }
+
+        public static string DeviceGUID
+        {
+            get
+            {
+                string result = null;
+                IsolatedStorageSettings.ApplicationSettings.TryGetValue(DEVICE_GUID, out result);
+                return result;
+            }        
+            set
+            {
+                IsolatedStorageSettings.ApplicationSettings[DEVICE_GUID] = value;
+                IsolatedStorageSettings.ApplicationSettings.Save();
+            }
+        
         }
 
         public static string UnhandledExceptionStack

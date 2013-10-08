@@ -53,12 +53,25 @@ namespace RemoteLogCore
 
         private static string GetDeviceUUID()
         {
-            StringBuilder sb = new StringBuilder("");
-            byte[] uuid = (byte[])DeviceExtendedProperties.GetValue("DeviceUniqueId");
-            foreach (byte b in uuid)
-            {
-                sb.Append(String.Format("{0:D3}",(int)b));                
+            StringBuilder sb = new StringBuilder();
+            try
+            {                
+                byte[] uuid = (byte[])DeviceExtendedProperties.GetValue("DeviceUniqueId");
+                foreach (byte b in uuid)
+                {
+                    sb.Append(String.Format("{0:D3}", (int)b));
+                }
             }
+            catch //there is some problem with getting UUID :(
+            { 
+                string s = RLSettings.DeviceGUID;
+                if (String.IsNullOrEmpty(s))
+                {
+                    s = Guid.NewGuid().ToString().ToUpper();
+                    RLSettings.DeviceGUID = s;
+                }
+                sb.Append(s);
+            }            
             return sb.ToString();
         }
 
