@@ -32,5 +32,7 @@ namespace RemoteLogCore.Model
         public string Model { get; set; }
 
         public string App { get; set; }
+         
+        public string AppVersion { get; set; }
     }
 }

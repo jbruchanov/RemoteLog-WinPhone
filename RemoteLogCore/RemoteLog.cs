@@ -278,6 +278,7 @@ namespace RemoteLogCore
         {
             dev.App = _appName;
             dev.Owner = _owner;
+            dev.AppVersion = ApplicationInfo.Version;            
             if (_deviceID == null || _deviceID == 0 || _resend)
             {
                 dev = SendDeviceToServer(dev);
